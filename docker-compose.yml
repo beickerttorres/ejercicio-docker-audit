@@ -17,6 +17,7 @@ services:
       - internal
     expose:
       - "5050"
+    mem_limit: 200m
 
   db:
     image: mysql:8.4
@@ -26,6 +27,14 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
+    command:
+      - --innodb-buffer-pool-size=64M
+      - --performance-schema=OFF
+      - --max-connections=30
+      - --innodb-buffer-pool-instances=1
+      - --innodb-log-buffer-size=8M
+      - --table-open-cache=64
+      - --thread-cache-size=8
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -36,6 +45,7 @@ services:
       start_period: 30s
     networks:
       - internal
+    mem_limit: 400m
 
   drizzle:
     image: ghcr.io/drizzle-team/gateway:latest
@@ -49,6 +59,7 @@ services:
       - internal
     expose:
       - "4983"
+    mem_limit: 128m
 
   kuma:
     image: louislam/uptime-kuma:1
@@ -59,6 +70,7 @@ services:
       - internal
     expose:
       - "3001"
+    mem_limit: 200m
 
   npm:
     image: jc21/nginx-proxy-manager:latest
@@ -72,6 +84,7 @@ services:
       - npm_letsencrypt:/etc/letsencrypt
     networks:
       - internal
+    mem_limit: 150m
 
 networks:
   internal:
