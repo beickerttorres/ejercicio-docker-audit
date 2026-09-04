@@ -95,7 +95,7 @@ bandit -r . -f json -o docs/bandit_auditoria.json # reporte completo
 |----------|--------|----------------|----------------------|
 | `api` | build local (`3.12-slim`) | 5050 | ❌ (solo proxy) |
 | `db` | `mysql:8.4` | 3306 | ❌ |
-| `drizzle` | `ghcr.io/drizzle-team/gateway` | 4983 | ❌ (solo proxy) |
+| `dozzle` | `amir20/dozzle:latest` | 8080 | ❌ (solo proxy) |
 | `kuma` | `louislam/uptime-kuma:1` | 3001 | ❌ (solo proxy) |
 | `npm` | `jc21/nginx-proxy-manager` | 80/443/81 | ✅ 80, 443 |
 
@@ -168,8 +168,8 @@ Notas sobre Trivy (v0.74.0 pineada):
                                | red interna "internal"
         +----------------------+---------------------+
         |                      |                     |
-   api:5050              drizzle:4983           kuma:3001
-   (Flask)               (Drizzle Gateway)      (Uptime Kuma)
+   api:5050              dozzle:8080           kuma:3001
+   (Flask)               (Dozzle)              (Uptime Kuma)
         |                      |                     |
    db:3306 (mysql:8.4)                              |
         +-------------------------------------------+
@@ -184,7 +184,7 @@ Notas sobre Trivy (v0.74.0 pineada):
 | Subdominio | Servicio | Reenviado a |
 |------------|----------|-------------|
 | `api.<dominio>.duckdns.org` | API Flask | `http://api:5050` |
-| `drizzle.<dominio>.duckdns.org` | Drizzle Gateway | `http://drizzle:4983` |
+| `dozzle.<dominio>.duckdns.org` | Dozzle (logs) | `http://dozzle:8080` |
 | `kuma.<dominio>.duckdns.org` | Uptime Kuma | `http://kuma:3001` |
 
 ### Pasos de despliegue
@@ -205,7 +205,7 @@ Notas sobre Trivy (v0.74.0 pineada):
    ```
 4. **DuckDNS:** crear los 3 registros A → IP de la instancia y configurar auto-actualización (cron).
 5. **Nginx Proxy Manager** (`http://IP:81`, credenciales iniciales `admin@example.com / changeme`):
-   - Crear 3 *Proxy Hosts*: `api.*`, `drizzle.*`, `kuma.*` apuntando a los servicios internos.
+   - Crear 3 *Proxy Hosts*: `api.*`, `dozzle.*`, `kuma.*` apuntando a los servicios internos.
    - Activar **Let's Encrypt SSL** en cada uno.
 6. **Verificar:**
    ```bash

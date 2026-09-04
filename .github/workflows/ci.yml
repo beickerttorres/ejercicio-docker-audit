@@ -67,7 +67,7 @@ jobs:
 
   deploy:
     needs: [test, bandit, trivy]
-    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    if: vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -83,8 +83,8 @@ jobs:
           script: |
             set -e
             cd /opt/ejercicio-docker-audit
-            git checkout main
-            git pull --ff-only origin main
+            git checkout ${{ github.ref_name }}
+            git pull --ff-only origin ${{ github.ref_name }}
             docker compose pull
             docker compose up -d --build
             docker image prune -f

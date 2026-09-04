@@ -47,18 +47,19 @@ services:
       - internal
     mem_limit: 400m
 
-  drizzle:
-    image: ghcr.io/drizzle-team/gateway:latest
+  dozzle:
+    image: amir20/dozzle:latest
     restart: unless-stopped
     environment:
-      PORT: "4983"
-      MASTERPASS: ${DRIZZLE_MASTERPASS}
+      DOZZLE_AUTH_PROVIDER: simple
+      DOZZLE_AUTH_USER: ${DOZZLE_AUTH_USER}
+      DOZZLE_AUTH_PASSWORD: ${DOZZLE_AUTH_PASSWORD_HASH}
     volumes:
-      - drizzle_data:/app
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - internal
     expose:
-      - "4983"
+      - "8080"
     mem_limit: 128m
 
   kuma:
@@ -92,7 +93,6 @@ networks:
 
 volumes:
   db_data:
-  drizzle_data:
   kuma_data:
   npm_data:
   npm_letsencrypt:
