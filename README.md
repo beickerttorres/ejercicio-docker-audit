@@ -84,7 +84,7 @@ bandit -r . -f json -o docs/bandit_auditoria.json # reporte completo
 | Archivo | Antes | Después |
 |---------|-------|---------|
 | `app.py` | Credenciales hardcodeadas, SQL por concatenación, `debug=True`, health check con `1/0` aleatorio, excepciones filtradas | Variables de entorno, queries parametrizadas (`%s`), `debug` por env, health check determinista, errores genéricos |
-| `Dockerfile` | `python:3.8`, root, `COPY . /app`, sin HEALTHCHECK | `python:3.12-slim`, usuario no-root `appuser`, `.dockerignore`, `HEALTHCHECK`, gunicorn |
+| `Dockerfile` | `python:3.8`, root, `COPY . /app`, sin HEALTHCHECK | `python:3.12-alpine` multi-stage (runtime sin pip/setuptools), usuario no-root `appuser`, `.dockerignore`, `HEALTHCHECK`, gunicorn |
 | `requirements.txt` | Pines obsoletos (Flask 1.1.2, PyMySQL 0.9.3) | Flask 3.x, PyMySQL 1.x, gunicorn + `requirements-dev.txt` |
 | `.env.example` | — | Configuración por variables de entorno (secretos fuera del repo) |
 | `docker-compose.yml` | — | 5 servicios en red interna, solo el proxy expone puertos |
@@ -129,13 +129,19 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 |-----|-------------|------------|
 | `test` | Python 3.12 + `pytest -v` | push a `main` / PR |
 | `bandit` | `bandit -r . -x .venv,.git,docs -s B101 -f json` | push a `main` / PR |
-| `trivy` | `aquasecurity/trivy-action` (filesystem + imagen) | push a `main` / PR |
+| `trivy` | imagen oficial `aquasec/trivy:0.74.0` (filesystem + imagen) | push a `main` / PR |
 | `deploy` | `appleboy/ssh-action` → EC2 | push a `main` (necesita secrets) |
 
-Notas sobre Trivy:
-- Se usa `--ignore-unfixed`: solo falla el pipeline con vulnerabilidades **con parche disponible**.
-- [`.trivyignore`](.trivyignore) documenta los falsos positivos/riesgos aceptados (msgpack vendored dentro de pip, setuptools actualizado a ≥84 en el Dockerfile pero detectado por análisis por capas).
+Notas sobre Trivy (v0.74.0 pineada):
+- El pipeline **falla** ante cualquier vulnerabilidad **CRITICAL o HIGH** (sin `--ignore-unfixed` ni `.trivyignore`).
+- La imagen base `python:3.12-alpine` con **build multi-stage** (el runtime final no incluye `pip` ni `setuptools`) reduce el scan de imagen de **54 hallazgos HIGH/CRITICAL a 0**.
+- Los CVEs del sistema (`perl-base`, `util-linux`, `ncurses`, `libc6`, etc.) en Debian `slim` no tenían parche publicado todavía; Alpine elimina ese conjunto de paquetes.
 - Dependencias pineadas en `requirements.txt` para un escaneo determinista.
+- Escaneo local:
+  ```bash
+  docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+    aquasec/trivy:0.74.0 image --severity CRITICAL,HIGH --exit-code 1 ejercicio-docker-audit:ci
+  ```
 
 ### Secrets requeridos en GitHub (`Settings → Secrets and variables → Actions`)
 

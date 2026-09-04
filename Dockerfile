@@ -1,19 +1,33 @@
-FROM python:3.12-slim
-
+# Stage 1: builder — instala las dependencias de Python
+FROM python:3.12-alpine AS builder
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
-
-WORKDIR /app
-
-RUN groupadd --system appgroup \
-    && useradd --system --gid appgroup --home-dir /app appuser
-
+WORKDIR /build
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir --upgrade pip setuptools \
     && pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Stage 2: runtime — imagen mínima sin pip ni setuptools
+FROM python:3.12-alpine
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+WORKDIR /app
+
+RUN addgroup -S appgroup \
+    && adduser -S -G appgroup -h /app appuser
+
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin/gunicorn /usr/local/bin/gunicorn
+
+RUN rm -rf /usr/local/lib/python3.12/site-packages/pip \
+           /usr/local/lib/python3.12/site-packages/pip-*.dist-info \
+           /usr/local/lib/python3.12/site-packages/setuptools \
+           /usr/local/lib/python3.12/site-packages/setuptools-*.dist-info \
+           /usr/local/lib/python3.12/site-packages/pkg_resources \
+           /usr/local/bin/pip* \
+           /root/.cache/pip
+
+COPY app.py .
 
 USER appuser
 

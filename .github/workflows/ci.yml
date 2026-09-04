@@ -47,24 +47,23 @@ jobs:
         uses: actions/checkout@v4
       - name: Build image
         run: docker build -t ejercicio-docker-audit:ci .
-      - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: table
-          exit-code: 1
-          severity: CRITICAL,HIGH
-          args: --ignore-unfixed
-      - name: Trivy image scan
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: image
-          scan-ref: ejercicio-docker-audit:ci
-          format: table
-          exit-code: 1
-          severity: CRITICAL,HIGH
-          args: --ignore-unfixed
+      - name: Trivy filesystem scan (0.74.0)
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/src" \
+            -w /src \
+            aquasec/trivy:0.74.0 fs \
+            --severity CRITICAL,HIGH \
+            --exit-code 1 \
+            .
+      - name: Trivy image scan (0.74.0)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.74.0 image \
+            --severity CRITICAL,HIGH \
+            --exit-code 1 \
+            ejercicio-docker-audit:ci
 
   deploy:
     needs: [test, bandit, trivy]
