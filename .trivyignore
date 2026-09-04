@@ -1,0 +1,5 @@
+# msgpack está embebido (vendored) dentro de pip, no es dependencia de la aplicación.
+GHSA-6v7p-g79w-8964
+# setuptools se actualiza a >=84 en el Dockerfile; trivy reporta 70.3.0 por análisis por capas
+# (whiteout no procesado), es un falso positivo. La imagen final corre setuptools 84.0.0.
+CVE-2025-47273

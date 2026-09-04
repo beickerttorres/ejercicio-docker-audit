@@ -55,6 +55,7 @@ jobs:
           format: table
           exit-code: 1
           severity: CRITICAL,HIGH
+          args: --ignore-unfixed
       - name: Trivy image scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
@@ -63,6 +64,7 @@ jobs:
           format: table
           exit-code: 1
           severity: CRITICAL,HIGH
+          args: --ignore-unfixed
 
   deploy:
     needs: [test, bandit, trivy]

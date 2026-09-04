@@ -36,8 +36,6 @@ upstream	https://github.com/BlackT1221/ejercicio-docker-audit.git (fetch)
 upstream	https://github.com/BlackT1221/ejercicio-docker-audit.git (push)
 ```
 
-> 📸 **Evidencia:** captura del fork en GitHub.
-
 ---
 
 ## Fase 2 — Auditoría de seguridad
@@ -76,8 +74,6 @@ bandit -r . -f json -o docs/bandit_auditoria.json # reporte completo
 | 6 | `Dockerfile` | Trivy / Manual | **Crítica** | Imagen `python:3.8` EOL, root, sin `.dockerignore` ni `HEALTHCHECK` |
 
 **Tabla de auditoría completa:** [`docs/AUDITORIA.md`](docs/AUDITORIA.md)
-
-> 📸 **Evidencia:** captura del reporte Bandit (`bandit -r .`) sobre el código original.
 
 ---
 
@@ -123,8 +119,6 @@ $ curl http://127.0.0.1:5070/health
 {"status":"ok"}
 ```
 
-> 📸 **Evidencia:** captura de `pytest`, `bandit`, `docker build` y `docker compose config`.
-
 ---
 
 ## Fase 4 — Pipeline CI/CD (GitHub Actions)
@@ -134,9 +128,14 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 | Job | Herramienta | Disparador |
 |-----|-------------|------------|
 | `test` | Python 3.12 + `pytest -v` | push a `main` / PR |
-| `bandit` | `bandit -r . -x .venv,.git,docs -f json` | push a `main` / PR |
+| `bandit` | `bandit -r . -x .venv,.git,docs -s B101 -f json` | push a `main` / PR |
 | `trivy` | `aquasecurity/trivy-action` (filesystem + imagen) | push a `main` / PR |
 | `deploy` | `appleboy/ssh-action` → EC2 | push a `main` (necesita secrets) |
+
+Notas sobre Trivy:
+- Se usa `--ignore-unfixed`: solo falla el pipeline con vulnerabilidades **con parche disponible**.
+- [`.trivyignore`](.trivyignore) documenta los falsos positivos/riesgos aceptados (msgpack vendored dentro de pip, setuptools actualizado a ≥84 en el Dockerfile pero detectado por análisis por capas).
+- Dependencias pineadas en `requirements.txt` para un escaneo determinista.
 
 ### Secrets requeridos en GitHub (`Settings → Secrets and variables → Actions`)
 
@@ -145,8 +144,6 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 | `EC2_HOST` | IP pública de la instancia |
 | `EC2_USER` | Usuario SSH (Debian 12 = `admin`) |
 | `EC2_SSH_KEY` | Llave privada SSH de la instancia |
-
-> 📸 **Evidencia:** captura del run del workflow con las 3 jobs verdes (`test`, `bandit`, `trivy`).
 
 ---
 
@@ -209,8 +206,6 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
    curl https://api.<dominio>.duckdns.org/health   # {"status":"ok"}
    ```
 
-> 📸 **Evidencia:** capturas de DuckDNS, Proxy Hosts en NPM, SSL activo y `curl` a los 3 subdominios.
-
 ---
 
 ## Cómo ejecutar en local
@@ -229,12 +224,3 @@ python3 -m venv .venv
 .venv/bin/pytest -v
 bandit app.py test_app.py -f json -o docs/bandit_refactor.json
 ```
-
-## Checklist de evidencia
-
-- [ ] Captura del fork en GitHub (Fase 1)
-- [ ] Reporte Bandit del código original (Fase 2)
-- [ ] Tabla `docs/AUDITORIA.md` (Fase 2)
-- [ ] Captura `pytest`, `bandit`, `docker build`, `docker compose config` (Fase 3)
-- [ ] Captura workflow GitHub Actions con 3 jobs verdes (Fase 4)
-- [ ] Captura de los 3 subdominios con HTTPS funcionando (Fase 5)
