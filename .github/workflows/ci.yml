@@ -67,7 +67,7 @@ jobs:
 
   deploy:
     needs: [test, bandit, trivy]
-    if: vars.DEPLOY_ENABLED == 'true'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
     steps:

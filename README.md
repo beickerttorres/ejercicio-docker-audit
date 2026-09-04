@@ -116,7 +116,7 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 | `test` | Python 3.12 + `pytest -v` | push a cualquier rama / PR |
 | `bandit` | `bandit -r . -x .venv,.git,docs -s B101 -f json` | push a cualquier rama / PR |
 | `trivy` | imagen oficial `aquasec/trivy:0.74.0` (filesystem + imagen) | push a cualquier rama / PR |
-| `deploy` | `appleboy/ssh-action` → EC2 (rama actual) | push a cualquier rama con `DEPLOY_ENABLED=true` |
+| `deploy` | `appleboy/ssh-action` → EC2 (rama actual) | push a cualquier rama |
 
 ### Resultado del pipeline (verde)
 
@@ -127,7 +127,7 @@ Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 | `test` | ✅ success |
 | `bandit` | ✅ success |
 | `trivy` | ✅ success |
-| `deploy` | ✅ / activado con la variable `DEPLOY_ENABLED=true` |
+| `deploy` | ✅ success (en cada push) |
 
 Notas sobre Trivy (v0.74.0 pineada):
 - El pipeline **falla** ante cualquier vulnerabilidad **CRITICAL o HIGH** (sin `--ignore-unfixed` ni `.trivyignore`).
@@ -141,7 +141,6 @@ Notas sobre Trivy (v0.74.0 pineada):
 | `EC2_HOST` | Secret | IP pública de la instancia (`3.19.218.247`) |
 | `EC2_USER` | Secret | Usuario SSH (Debian = `admin`) |
 | `EC2_SSH_KEY` | Secret | Llave privada SSH del deploy |
-| `DEPLOY_ENABLED` | Variable | `true` para activar el job `deploy` |
 
 ---
 
