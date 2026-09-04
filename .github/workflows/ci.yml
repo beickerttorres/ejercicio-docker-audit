@@ -85,6 +85,5 @@ jobs:
             cd /opt/ejercicio-docker-audit
             git checkout ${{ github.ref_name }}
             git pull --ff-only origin ${{ github.ref_name }}
-            docker compose pull
             docker compose up -d --build
             docker image prune -f
