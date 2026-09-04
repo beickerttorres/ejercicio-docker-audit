@@ -52,10 +52,9 @@ services:
     restart: unless-stopped
     environment:
       DOZZLE_AUTH_PROVIDER: simple
-      DOZZLE_AUTH_USER: ${DOZZLE_AUTH_USER}
-      DOZZLE_AUTH_PASSWORD: ${DOZZLE_AUTH_PASSWORD_HASH}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./users.yml:/data/users.yml:ro
     networks:
       - internal
     expose:
